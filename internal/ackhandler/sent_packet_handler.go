@@ -607,7 +607,7 @@ func (h *sentPacketHandler) detectLostPackets(now time.Time, encLevel protocol.E
 		} else if pnSpace.largestAcked >= p.PacketNumber+packetThreshold {
 			packetLost = true
 			if h.logger.Debug() {
-				h.logger.Debugf("\tlost packet %d (reordering threshold)", p.PacketNumber)
+				h.logger.Infof("\tlost packet %d (reordering threshold)", p.PacketNumber)
 			}
 			if h.tracer != nil {
 				h.tracer.LostPacket(p.EncryptionLevel, p.PacketNumber, logging.PacketLossReorderingThreshold)
@@ -748,7 +748,7 @@ func (h *sentPacketHandler) SendMode() SendMode {
 	// Only send ACKs if we're congestion limited.
 	if !h.congestion.CanSend(h.bytesInFlight) {
 		if h.logger.Debug() {
-			h.logger.Debugf("Congestion limited: bytes in flight %d, window %d", h.bytesInFlight, h.congestion.GetCongestionWindow())
+			h.logger.Infof("Congestion limited: bytes in flight %d, window %d", h.bytesInFlight, h.congestion.GetCongestionWindow())
 		}
 		return SendAck
 	}

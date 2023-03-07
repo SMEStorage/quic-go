@@ -196,10 +196,11 @@ func (c *cubicSender) OnPacketLost(packetNumber protocol.PacketNumber, lostBytes
 	}
 	c.lastCutbackExitedSlowstart = c.InSlowStart()
 	c.maybeTraceStateChange(logging.CongestionStateRecovery)
+	fmt.Printf("Packet loss. Congestion Window: %v.  SlowStartThreshold: %v", c.congestionWindow, slowStartThreshold)
 
 	if c.reno {
-		fmt.Printf("Packet loss. Congestion Window dropping %v -> %.0f   %v", c.congestionWindow, float64(c.congestionWindow)*renoBeta, slowStartThreshold)
 		c.congestionWindow = protocol.ByteCount(float64(c.congestionWindow) * renoBeta)
+		fmt.Printf("Packet loss. Congestion Window dropped to  %v", c.congestionWindow)
 	} else {
 		c.congestionWindow = c.cubic.CongestionWindowAfterPacketLoss(c.congestionWindow)
 	}
@@ -233,7 +234,7 @@ func (c *cubicSender) maybeIncreaseCwnd(
 	}
 	if c.InSlowStart() {
 		// TCP slow start, exponential growth, increase by one for each ACK.
-		c.congestionWindow += c.maxDatagramSize
+		c.congestionWindow += (c.maxDatagramSize * 2)
 		c.maybeTraceStateChange(logging.CongestionStateSlowStart)
 		return
 	}
@@ -242,8 +243,8 @@ func (c *cubicSender) maybeIncreaseCwnd(
 	if c.reno {
 		// Classic Reno congestion avoidance.
 		c.numAckedPackets++
-		if c.numAckedPackets >= uint64(c.congestionWindow/c.maxDatagramSize) {
-			c.congestionWindow += c.maxDatagramSize
+		if c.numAckedPackets >= uint64((c.congestionWindow/c.maxDatagramSize)/4) {
+			c.congestionWindow += (c.maxDatagramSize * 2)
 			c.numAckedPackets = 0
 		}
 	} else {
