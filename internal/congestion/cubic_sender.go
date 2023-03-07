@@ -14,7 +14,7 @@ const (
 	// Used in QUIC for congestion window computations in bytes.
 	initialMaxDatagramSize     = protocol.ByteCount(protocol.InitialPacketSizeIPv4)
 	maxBurstPackets            = 3
-	renoBeta                   = 0.97 // Reno backoff factor.
+	renoBeta                   = 0.99 // Reno backoff factor.
 	minCongestionWindowPackets = 2
 	initialCongestionWindow    = 32
 )
@@ -196,11 +196,9 @@ func (c *cubicSender) OnPacketLost(packetNumber protocol.PacketNumber, lostBytes
 	}
 	c.lastCutbackExitedSlowstart = c.InSlowStart()
 	c.maybeTraceStateChange(logging.CongestionStateRecovery)
-	fmt.Printf("Packet loss. Congestion Window: %v.  SlowStartThreshold: %v", c.congestionWindow, slowStartThreshold)
 
 	if c.reno {
 		c.congestionWindow = protocol.ByteCount(float64(c.congestionWindow) * renoBeta)
-		fmt.Printf("Packet loss. Congestion Window dropped to  %v", c.congestionWindow)
 	} else {
 		c.congestionWindow = c.cubic.CongestionWindowAfterPacketLoss(c.congestionWindow)
 	}
@@ -234,7 +232,7 @@ func (c *cubicSender) maybeIncreaseCwnd(
 	}
 	if c.InSlowStart() {
 		// TCP slow start, exponential growth, increase by one for each ACK.
-		c.congestionWindow += (c.maxDatagramSize * 2)
+		c.congestionWindow += c.maxDatagramSize
 		c.maybeTraceStateChange(logging.CongestionStateSlowStart)
 		return
 	}
