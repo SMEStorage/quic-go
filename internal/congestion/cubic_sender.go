@@ -14,7 +14,7 @@ const (
 	// Used in QUIC for congestion window computations in bytes.
 	initialMaxDatagramSize     = protocol.ByteCount(protocol.InitialPacketSizeIPv4)
 	maxBurstPackets            = 3
-	renoBeta                   = 0.9 // Reno backoff factor.
+	renoBeta                   = 0.97 // Reno backoff factor.
 	minCongestionWindowPackets = 2
 	initialCongestionWindow    = 32
 )
@@ -198,6 +198,7 @@ func (c *cubicSender) OnPacketLost(packetNumber protocol.PacketNumber, lostBytes
 	c.maybeTraceStateChange(logging.CongestionStateRecovery)
 
 	if c.reno {
+		fmt.Printf("Packet loss. Congestion Window dropping %v -> %.0f   %v", c.congestionWindow, float64(c.congestionWindow)*renoBeta, slowStartThreshold)
 		c.congestionWindow = protocol.ByteCount(float64(c.congestionWindow) * renoBeta)
 	} else {
 		c.congestionWindow = c.cubic.CongestionWindowAfterPacketLoss(c.congestionWindow)
