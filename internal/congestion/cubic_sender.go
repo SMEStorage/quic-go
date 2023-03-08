@@ -14,7 +14,7 @@ const (
 	// Used in QUIC for congestion window computations in bytes.
 	initialMaxDatagramSize     = protocol.ByteCount(protocol.InitialPacketSizeIPv4)
 	maxBurstPackets            = 3
-	renoBeta                   = 0.98 // Reno backoff factor.
+	renoBeta                   = 0.97 // Reno backoff factor.
 	minCongestionWindowPackets = 2
 	initialCongestionWindow    = 32
 )
@@ -242,7 +242,7 @@ func (c *cubicSender) maybeIncreaseCwnd(
 		// Classic Reno congestion avoidance.
 		c.numAckedPackets++
 		if c.numAckedPackets >= uint64((c.congestionWindow/c.maxDatagramSize)/4) {
-			c.congestionWindow += (c.maxDatagramSize * 2)
+			c.congestionWindow += (c.maxDatagramSize * 5)
 			c.numAckedPackets = 0
 		}
 	} else {
