@@ -230,6 +230,10 @@ func newServer(
 	if err != nil {
 		return nil, err
 	}
+
+	logger := utils.DefaultLogger.WithPrefix("srv")
+	logger.SetLogTimeFormat(time.StampMilli)
+
 	s := &baseServer{
 		conn:                    conn,
 		tlsConf:                 tlsConf,
@@ -245,7 +249,7 @@ func newServer(
 		invalidTokenQueue:       make(chan *receivedPacket, 4),
 		newConn:                 newConnection,
 		tracer:                  tracer,
-		logger:                  utils.DefaultLogger.WithPrefix("server"),
+		logger:                  logger,
 		acceptEarlyConns:        acceptEarly,
 		onClose:                 onClose,
 	}

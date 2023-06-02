@@ -4,7 +4,10 @@ import (
 	"context"
 	"crypto/tls"
 	"errors"
+	"log"
 	"net"
+	"os"
+	"time"
 
 	"github.com/quic-go/quic-go/internal/protocol"
 	"github.com/quic-go/quic-go/internal/utils"
@@ -172,6 +175,17 @@ func newClient(sendConn sendConn, connIDGenerator ConnectionIDGenerator, config 
 	if err != nil {
 		return nil, err
 	}
+
+	// Log to file
+	f, err := os.OpenFile("quiclogfile", os.O_RDWR|os.O_CREATE|os.O_APPEND, 0666)
+	if err != nil {
+		log.Fatalf("error opening file: %v", err)
+	}
+
+	logger := utils.DefaultLogger.WithPrefix("cl")
+	logger.SetOutput(f)
+	logger.SetLogTimeFormat(time.StampMilli)
+
 	c := &client{
 		connIDGenerator: connIDGenerator,
 		srcConnID:       srcConnID,
@@ -183,7 +197,7 @@ func newClient(sendConn sendConn, connIDGenerator ConnectionIDGenerator, config 
 		config:          config,
 		version:         config.Versions[0],
 		handshakeChan:   make(chan struct{}),
-		logger:          utils.DefaultLogger.WithPrefix("client"),
+		logger:          logger,
 	}
 	return c, nil
 }

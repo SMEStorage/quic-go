@@ -28,6 +28,7 @@ const logEnv = "QUIC_GO_LOG_LEVEL"
 type Logger interface {
 	SetLogLevel(LogLevel)
 	SetLogTimeFormat(format string)
+	SetOutput(*os.File)
 	WithPrefix(prefix string) Logger
 	Debug() bool
 
@@ -51,6 +52,11 @@ var _ Logger = &defaultLogger{}
 // SetLogLevel sets the log level
 func (l *defaultLogger) SetLogLevel(level LogLevel) {
 	l.logLevel = level
+}
+
+// SetOutput allows you set the log output to an io.Writer
+func (l *defaultLogger) SetOutput(dest *os.File) {
+	log.SetOutput(dest)
 }
 
 // SetLogTimeFormat sets the format of the timestamp
