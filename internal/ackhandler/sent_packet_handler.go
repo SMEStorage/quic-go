@@ -18,7 +18,7 @@ const (
 	// Specified as an RTT multiplier.
 	timeThreshold = 9.0 / 8
 	// Maximum reordering in packets before packet threshold loss detection considers a packet lost.
-	packetThreshold = 3
+	packetThreshold = 20 // Was 3
 	// Before validating the client's address, the server won't send more than 3x bytes than it received.
 	amplificationFactor = 3
 	// We use Retry packets to derive an RTT estimate. Make sure we don't set the RTT to a super low value yet.
@@ -416,7 +416,7 @@ func (h *sentPacketHandler) detectAndRemoveAckedPackets(ack *wire.AckFrame, encL
 		for i, p := range h.ackedPackets {
 			pns[i] = p.PacketNumber
 		}
-		h.logger.Debugf("\tnewly acked packets (%d): %d", len(pns), pns)
+		h.logger.Infof(" <- Window: %d - Inflight: %d - newly acked packets (%d): %d", h.congestion.GetCongestionWindow(), h.bytesInFlight, len(pns), pns)
 	}
 
 	for _, p := range h.ackedPackets {
@@ -598,17 +598,17 @@ func (h *sentPacketHandler) detectLostPackets(now time.Time, encLevel protocol.E
 		var packetLost bool
 		if p.SendTime.Before(lostSendTime) {
 			packetLost = true
-			if h.logger.Debug() {
-				h.logger.Debugf("\tlost packet %d (time threshold)", p.PacketNumber)
-			}
+
+			h.logger.Infof("\tlost packet %d (time threshold)", p.PacketNumber)
+
 			if h.tracer != nil {
 				h.tracer.LostPacket(p.EncryptionLevel, p.PacketNumber, logging.PacketLossTimeThreshold)
 			}
 		} else if pnSpace.largestAcked >= p.PacketNumber+packetThreshold {
 			packetLost = true
-			if h.logger.Debug() {
-				h.logger.Debugf("\tlost packet %d (reordering threshold)", p.PacketNumber)
-			}
+
+			h.logger.Infof("\tlost packet %d (reordering threshold)", p.PacketNumber)
+
 			if h.tracer != nil {
 				h.tracer.LostPacket(p.EncryptionLevel, p.PacketNumber, logging.PacketLossReorderingThreshold)
 			}
@@ -747,9 +747,9 @@ func (h *sentPacketHandler) SendMode() SendMode {
 	}
 	// Only send ACKs if we're congestion limited.
 	if !h.congestion.CanSend(h.bytesInFlight) {
-		if h.logger.Debug() {
-			h.logger.Debugf("Congestion limited: bytes in flight %d, window %d", h.bytesInFlight, h.congestion.GetCongestionWindow())
-		}
+
+		h.logger.Infof("Congestion limited: bytes in flight %d, window %d", h.bytesInFlight, h.congestion.GetCongestionWindow())
+
 		return SendAck
 	}
 	if numTrackedPackets >= protocol.MaxOutstandingSentPackets {

@@ -8,7 +8,7 @@ import (
 	"github.com/quic-go/quic-go/internal/utils"
 )
 
-const maxBurstSizePackets = 10
+const maxBurstSizePackets = 1024 //Was 10
 
 // The pacer implements a token bucket pacing algorithm.
 type pacer struct {
@@ -28,7 +28,7 @@ func newPacer(getBandwidth func() Bandwidth) *pacer {
 			// RTT variations then won't result in under-utilization of the congestion window.
 			// Ultimately, this will  result in sending packets as acknowledgments are received rather than when timers fire,
 			// provided the congestion window is fully utilized and acknowledgments arrive at regular intervals.
-			return bw * 5 / 4
+			return bw * 3 // Was 5 / 4
 		},
 	}
 	p.budgetAtLastSent = p.maxBurstSize()

@@ -923,8 +923,8 @@ func (s *connection) handleShortHeaderPacket(p *receivedPacket, destConnID proto
 		return false
 	}
 
+	s.logger.Infof("<- Reading packet %d (%d bytes) for connection %s, 1-RTT", pn, p.Size(), destConnID)
 	if s.logger.Debug() {
-		s.logger.Debugf("<- Reading packet %d (%d bytes) for connection %s, 1-RTT", pn, p.Size(), destConnID)
 		wire.LogShortHeader(s.logger, destConnID, pn, pnLen, keyPhase)
 	}
 
@@ -1995,8 +1995,8 @@ func (s *connection) logShortHeaderPacket(
 	size protocol.ByteCount,
 	isCoalesced bool,
 ) {
-	if s.logger.Debug() && !isCoalesced {
-		s.logger.Debugf("-> Sending packet %d (%d bytes) for connection %s, 1-RTT", pn, size, s.logID)
+	if !isCoalesced {
+		s.logger.Infof("-> Sending packet %d (%d bytes) for connection %s, 1-RTT", pn, size, s.logID)
 	}
 	// quic-go logging
 	if s.logger.Debug() {
