@@ -324,9 +324,9 @@ func (h *sentPacketHandler) ReceivedAck(ack *wire.AckFrame, encLevel protocol.En
 				ackDelay = utils.Min(ack.DelayTime, h.rttStats.MaxAckDelay())
 			}
 			h.rttStats.UpdateRTT(rcvTime.Sub(p.SendTime), ackDelay, rcvTime)
-			if h.logger.Debug() {
-				h.logger.Debugf("\tupdated RTT: %s (σ: %s)", h.rttStats.SmoothedRTT(), h.rttStats.MeanDeviation())
-			}
+
+			h.logger.Infof("\tupdated RTT: %s (σ: %s)", h.rttStats.SmoothedRTT(), h.rttStats.MeanDeviation())
+
 			h.congestion.MaybeExitSlowStart()
 		}
 	}
@@ -411,7 +411,7 @@ func (h *sentPacketHandler) detectAndRemoveAckedPackets(ack *wire.AckFrame, encL
 		h.ackedPackets = append(h.ackedPackets, p)
 		return true, nil
 	})
-	if h.logger.Debug() && len(h.ackedPackets) > 0 {
+	if len(h.ackedPackets) > 0 {
 		pns := make([]protocol.PacketNumber, len(h.ackedPackets))
 		for i, p := range h.ackedPackets {
 			pns[i] = p.PacketNumber
