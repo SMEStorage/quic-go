@@ -232,7 +232,7 @@ func newServer(
 	}
 
 	logger := utils.DefaultLogger.WithPrefix("srv")
-	logger.SetLogTimeFormat(time.StampMilli)
+	logger.SetLogTimeFormat(time.StampMicro)
 
 	s := &baseServer{
 		conn:                    conn,

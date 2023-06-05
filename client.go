@@ -184,7 +184,7 @@ func newClient(sendConn sendConn, connIDGenerator ConnectionIDGenerator, config 
 
 	logger := utils.DefaultLogger.WithPrefix("cl")
 	logger.SetOutput(f)
-	logger.SetLogTimeFormat(time.StampMilli)
+	logger.SetLogTimeFormat(time.StampMicro)
 
 	c := &client{
 		connIDGenerator: connIDGenerator,
