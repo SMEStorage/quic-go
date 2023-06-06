@@ -13,8 +13,8 @@ const (
 	// maxDatagramSize is the default maximum packet size used in the Linux TCP implementation.
 	// Used in QUIC for congestion window computations in bytes.
 	initialMaxDatagramSize     = protocol.ByteCount(protocol.InitialPacketSizeIPv4)
-	maxBurstPackets            = 3
-	renoBeta                   = 0.95 // Reno backoff factor.
+	maxBurstPackets            = .05
+	renoBeta                   = 0.94 // Reno backoff factor.
 	minCongestionWindowPackets = 2
 	initialCongestionWindow    = 2048 // Org 32
 )
@@ -242,7 +242,7 @@ func (c *cubicSender) maybeIncreaseCwnd(
 		// Classic Reno congestion avoidance.
 		c.numAckedPackets++
 		if c.numAckedPackets >= uint64((c.congestionWindow/c.maxDatagramSize)/4) {
-			c.congestionWindow += c.maxDatagramSize * 4
+			c.congestionWindow += c.maxDatagramSize * 5
 			c.numAckedPackets = 0
 		}
 	} else {
@@ -257,7 +257,7 @@ func (c *cubicSender) isCwndLimited(bytesInFlight protocol.ByteCount) bool {
 	}
 	availableBytes := congestionWindow - bytesInFlight
 	slowStartLimited := c.InSlowStart() && bytesInFlight > congestionWindow/2
-	return slowStartLimited || availableBytes <= maxBurstPackets*c.maxDatagramSize
+	return slowStartLimited || availableBytes <= protocol.ByteCount(maxBurstPackets*float64(congestionWindow))
 }
 
 // BandwidthEstimate returns the current bandwidth estimate
